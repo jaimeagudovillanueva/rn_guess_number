@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button, Image } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
 import DefaultStyles from '../constants/default-styles';
 import Colors from '../constants/colors';
-import MainButton from '../components/MainButton';
+import MainButton from '../components/MainButton.android';
 
 const GameOverScreen = props => {
 
@@ -31,28 +31,29 @@ const styles = StyleSheet.create({
     screen: {
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingVertical: 10
     },
     imageContainer: {
-        width: 300,
-        height: 300,
-        borderRadius: 150,
+        width: Dimensions.get('window').width * 0.75,
+        height: Dimensions.get('window').width * 0.75,
+        borderRadius: Dimensions.get('window').width * 0.75 / 2,
         borderWidth: 2,
         borderColor: 'black',
         overflow: 'hidden',
-        marginVertical: 30
+        marginVertical: Dimensions.get('window').height / 30
     },
     image: {
         width: '100%',
         height: '100%'
     },
     resultContainer: {
-        marginHorizontal: 30,
-        marginVertical: 15
+        marginHorizontal: Dimensions.get('window').width / 10,
+        marginVertical: Dimensions.get('window').height / 60
     },
     resultText: {
         textAlign: 'center',
-        fontSize: 18
+        fontSize: Dimensions.get('window').height < 400 ? 14 : 18
     },
     highlight: {
         color: Colors.primary,

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Alert, Dimensions, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import NumberContainer from '../components/NumberContainer';
@@ -29,6 +29,7 @@ const GameScreen = props => {
     const initialGuess = generateRandomBetween(1, 100, props.userChoice);
     const [currentGuess, setCurrentGuess] = useState(initialGuess);
     const [pastGuesses, setPasGuesses] = useState([initialGuess.toString()]);
+    const [deviceWindow, setDeviceWindow] = useState(Dimensions.get('window'));
 
     // Usamos useRef en lugar de useState, porque con useState se renderiza el componente cada vez que cambia 
     // el estado y en este caso no queremos que se vuelva a renderizar el componente cuando cambia el valor
@@ -42,6 +43,15 @@ const GameScreen = props => {
             onGameOver(pastGuesses.length);
         }
     }, [currentGuess, userChoice, onGameOver]);
+
+    useEffect(() => {
+        const updateLayout = () => setDeviceWindow(Dimensions.get('window'));
+        Dimensions.addEventListener('change', updateLayout);
+
+        return () => {
+            Dimensions.removeEventListener('change', updateLayout);
+        }
+    });
 
     const nextGuessHandler = direction => {
         if ((direction === 'lower' && currentGuess < userChoice) 
@@ -59,6 +69,38 @@ const GameScreen = props => {
         const nextNumber = generateRandomBetween(currentLow.current, currentHigh.current, currentGuess);
         setCurrentGuess(nextNumber);
         setPasGuesses(curPastGuesses => [nextNumber.toString(), ...curPastGuesses]);
+    }
+
+    if (deviceWindow.height < 500) {
+        return (
+            <View style={styles.screen}>
+            <Text style={DefaultStyles.title}>Opponent's Guess</Text>
+            <View style={styles.controls}>
+                <MainButton onPress={nextGuessHandler.bind(this, 'lower')}>
+                        <Ionicons name="md-remove" size={24} color="white"/>
+                    </MainButton>
+                <NumberContainer>{currentGuess}</NumberContainer>
+                <MainButton onPress={nextGuessHandler.bind(this, 'greater')}>
+                    <Ionicons name="md-add" size={24} color="white"/>
+                </MainButton>
+            </View>
+            
+            {/* <ScrollView style={styles.listContainer} contentContainerStyle={styles.list}>
+                {pastGuesses.map((guess, index) => renderListItem(guess, pastGuesses.length - index))}
+            </ScrollView> */}
+            <FlatList 
+                keyExtractor={item => item} 
+                data={pastGuesses} 
+                // FlatList espera un único argumento pero se pueden bindear más, en este
+                // caso pasamos el número de rondas. Los argumentos bindeados se añaden primero
+                // y cualquier otro argumento como data se añadiría después como argumento. Por
+                // eso el orden de los parámetros en renderListItem 
+                renderItem={renderListItem.bind(this, pastGuesses.length)}
+                style={styles.listContainer}
+                contentContainerStyle={styles.list}
+            />
+        </View>
+        );
     }
 
     return (
@@ -100,13 +142,19 @@ const styles = StyleSheet.create({
     buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 20,
-        width: 400,
+        marginTop: Dimensions.get('window').height > 600 ? 20 : 5,
+        width: '85%',
         maxWidth: '90%'
+    },
+    controls: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '80%',
+        alignItems: 'center'
     },
     listContainer: {
         flex: 1,
-        width: '60%',
+        width: Dimensions.get('window').width > 350 ? '60%' : '80%',
         marginVertical: 10,
     },
     list: {
